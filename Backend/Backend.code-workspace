@@ -1,0 +1,14 @@
+{
+  "folders": [
+    {
+      "name": "Smart Surveillance Backend",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["tests"]
+  }
+}
+
