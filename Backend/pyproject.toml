@@ -21,6 +21,7 @@ dev = [
 ]
 vision = [
     "opencv-python>=4.10,<5.0",
+    "rfdetr==1.9.4",
 ]
 
 [tool.pytest.ini_options]

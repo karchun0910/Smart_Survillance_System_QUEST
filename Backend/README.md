@@ -54,6 +54,12 @@ py -3.12 -m venv .venv
 .venv\Scripts\activate
 ```
 
+Install the CUDA-enabled PyTorch packages:
+
+```cmd
+python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+```
+
 Install the backend, development, and computer-vision dependencies:
 
 ```cmd
@@ -113,6 +119,44 @@ http://127.0.0.1:8000/docs
 The camera-status endpoint opens laptop webcam source `0`, attempts to capture one frame,
 reports whether capture succeeded, and then releases the camera. It does not currently
 stream, store, or analyze video.
+
+## RF-DETR saved-image baseline
+
+The RF-DETR image-detection baseline was verified on 26 August 2026.
+
+- Package: `rfdetr==1.9.4`
+- Model: `RFDETRNano`
+- Model weights: `rf-detr-nano.pth`
+- Weight cache: `%USERPROFILE%\.roboflow\models\rf-detr-nano.pth`
+- Weight source: Roboflow RF-DETR
+- PyTorch: `2.11.0+cu128`
+- Torchvision: `0.26.0+cu128`
+- Inference device: NVIDIA GeForce RTX 3050 Laptop GPU using CUDA
+- Baseline confidence threshold: `0.5`
+
+The package automatically downloaded the RF-DETR Nano weights and successfully validated
+their MD5 checksum. The webcam test image produced a person detection with `0.897`
+confidence. Thresholds `0.3`, `0.5`, and `0.7` all retained the person detection.
+
+Run the saved-image test from the `Backend` folder:
+
+```cmd
+python scripts\rfdetr_image_test.py
+```
+The annotated result is saved to:
+```text
+outputs\rfdetr_webcam_person.jpg
+```
+
+The open-source `rfdetr` package and the Apache-designated RF-DETR Nano model weights are
+licensed under Apache License 2.0. The `rfdetr_plus` extension and RF-DETR XL/2XL detection
+models use the PML 1.0 licence and are not used by this project.
+
+Licence source:
+
+```text
+https://github.com/roboflow/rf-detr#license
+```
 
 ## Planned processing flow
 
