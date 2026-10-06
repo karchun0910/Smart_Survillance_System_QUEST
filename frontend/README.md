@@ -1,32 +1,31 @@
-# React + TypeScript + Vite
+# Smart Surveillance dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React dashboard for policy rules and detected events. It polls FastAPI every two seconds, so a stored event appears without reloading the page.
 
-Currently, two official plugins are available:
+## Run
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```powershell
+Copy-Item .env.example .env
+npm.cmd install
+npm.cmd run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open `http://127.0.0.1:5173`. The default API is `http://127.0.0.1:8000/api/v1` and can be changed with `VITE_API_URL`.
+
+## Missing Lab Coat demonstration
+
+1. Start MySQL and FastAPI, then open this dashboard.
+2. Create or enable a rule with observation type `missing_lab_coat`, high severity, the detector's confidence threshold, three visible seconds, and a cooldown.
+3. Start the webcam worker and stand without a lab coat for at least three seconds.
+4. Wait up to two seconds for **Missing lab coat** to appear under Recent events.
+5. Select **Confirm** or **False alarm** and verify that the review badge updates.
+
+If FastAPI or MySQL is unavailable, the dashboard shows an offline warning and keeps retrying. Camera access and the MySQL record still require manual verification on the demonstration computer.
+
+## Checks
+
+```powershell
+npm.cmd run lint
+npm.cmd run format:check
+npm.cmd run build
+```

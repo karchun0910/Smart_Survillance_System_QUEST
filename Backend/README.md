@@ -1,7 +1,7 @@
 # Smart Surveillance Backend
 
-FastAPI backend for the Smart Surveillance System FYP. The backend currently supports
-MySQL policy-rule management and laptop-webcam availability checks through OpenCV.
+FastAPI backend for the Smart Surveillance System FYP. It accepts detector observations,
+evaluates editable MySQL policy rules, stores events, and serves the React dashboard.
 
 ## Current foundation
 
@@ -11,7 +11,8 @@ MySQL policy-rule management and laptop-webcam availability checks through OpenC
 - MySQL with SQLAlchemy and PyMySQL
 - Alembic database migrations
 - Policy-rule CRUD endpoints
-- Laptop-webcam availability endpoint
+- Observation ingestion and event review endpoints
+- Detector-heartbeat camera status
 - Pytest automated tests
 - Ruff code-quality checks
 
@@ -113,12 +114,85 @@ http://127.0.0.1:8000/docs
 - `POST /api/v1/rules`
 - `GET /api/v1/rules/{rule_id}`
 - `PATCH /api/v1/rules/{rule_id}`
+- `GET /api/v1/observations`
+- `POST /api/v1/observations`
+- `GET /api/v1/events`
+- `GET /api/v1/events/{event_id}`
+- `PATCH /api/v1/events/{event_id}/review`
 
 ## Current camera behavior
 
-The camera-status endpoint opens laptop webcam source `0`, attempts to capture one frame,
-reports whether capture succeeded, and then releases the camera. It does not currently
-stream, store, or analyze video.
+The camera-status endpoint does not open the webcam. It reports the detector as available
+when a matching observation was stored during the previous five seconds. This prevents
+React polling from competing with the live worker for camera access.
+
+## Repeatable Missing Lab Coat demonstration
+
+Use three PowerShell terminals. MySQL must be running and `Backend/.env` must contain the
+local database URL.
+
+Terminal 1 - apply migrations and start FastAPI:
+
+```powershell
+cd Backend
+.\.venv\Scripts\Activate.ps1
+python -m alembic upgrade head
+python -m uvicorn app.main:app --reload
+```
+
+Terminal 2 - start the React dashboard:
+
+```powershell
+cd frontend
+npm.cmd run dev
+```
+
+Open the displayed local URL. Create or enable this policy rule:
+
+| Field | Value |
+| --- | --- |
+| Rule name | `Lab coat required` |
+| Observation type | `missing_lab_coat` |
+| Severity | `medium` |
+| Confidence | `0.50` |
+| Visible seconds | `3` |
+| Cooldown | `60` |
+
+Terminal 3 - start the detector and tracker:
+
+```powershell
+cd Backend
+.\.venv\Scripts\Activate.ps1
+$env:RFDETR_POST_OBSERVATIONS = "1"
+python scripts\rfdetr_live_webcam.py
+```
+
+Expected violation path:
+
+1. A person receives a stable ByteTrack ID.
+2. No associated `lab_coat` or `lab_gown` is detected for three continuous seconds.
+3. The worker displays `MISSING LAB COAT` and posts `missing_lab_coat`.
+4. FastAPI applies confidence, duration, and cooldown policy settings.
+5. MySQL stores the observation and policy-generated event for human review.
+6. React displays the event within its two-second polling interval and permits Confirmed or
+   False Alarm review.
+
+For the normal-state check, wear a lab coat and confirm the worker detects `lab_coat` or
+`lab_gown`, clears the missing-attire timer, and creates no new event. The pilot attire
+model is intentionally small, so record any false alert as an evaluation limitation.
+
+Automated checks do not require webcam access or a live MySQL connection:
+
+```powershell
+cd Backend
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check app tests migrations scripts
+
+cd ..\frontend
+npm.cmd run lint
+npm.cmd run format:check
+npm.cmd run build
+```
 
 ## RF-DETR saved-image baseline
 
@@ -158,7 +232,13 @@ Licence source:
 https://github.com/roboflow/rf-detr#license
 ```
 
-## Planned processing flow
+Start the live webcam:
 
-Laptop webcam -> OpenCV -> detector -> tracker -> action recognition -> face-recognition
-adapter -> database rule engine -> event storage -> React dashboard alerts
+```cmd
+python scripts\rfdetr_live_webcam.py
+```
+
+## Processing flow
+
+Laptop webcam -> OpenCV -> RF-DETR -> ByteTrack -> missing-attire observation -> FastAPI
+policy engine -> MySQL event storage -> React dashboard review
