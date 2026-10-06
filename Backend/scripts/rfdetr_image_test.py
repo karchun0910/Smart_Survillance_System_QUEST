@@ -18,6 +18,7 @@ def main() -> None:
 
     detections = model.predict(str(IMAGE_PATH), threshold=CONFIDENCE_THRESHOLD)
     detections = detections[detections.class_id == PERSON_CLASS_ID]
+
     labels = [
         f"{COCO_CLASSES[int(class_id)]} {confidence:.2f}"
         for class_id, confidence in zip(
@@ -32,10 +33,12 @@ def main() -> None:
     image = sv.LabelAnnotator().annotate(image, detections, labels)
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
     saved = cv2.imwrite(
         str(OUTPUT_PATH),
         cv2.cvtColor(image, cv2.COLOR_RGB2BGR),
     )
+
     if not saved:
         raise RuntimeError(f"Could not save detection result to {OUTPUT_PATH}")
 

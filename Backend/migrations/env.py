@@ -4,6 +4,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.core.config import get_settings
+from app.models.event import Event  # noqa: F401
+from app.models.observation import Observation  # noqa: F401
 from app.models.policy_rule import PolicyRule
 
 # this is the Alembic Config object, which provides

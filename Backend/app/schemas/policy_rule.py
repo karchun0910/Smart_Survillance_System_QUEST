@@ -21,6 +21,8 @@ class PolicyRuleCreate(BaseModel):
     severity: Severity = "medium"
     is_enabled: bool = True
     cooldown_seconds: int = Field(default=30, ge=0)
+    confidence_threshold: float = Field(default=0.5, ge=0, le=1)
+    min_duration_seconds: float = Field(default=0, ge=0)
 
 
 class PolicyRuleUpdate(BaseModel):
@@ -39,6 +41,8 @@ class PolicyRuleUpdate(BaseModel):
     severity: Severity | None = None
     is_enabled: bool | None = None
     cooldown_seconds: int | None = Field(default=None, ge=0)
+    confidence_threshold: float | None = Field(default=None, ge=0, le=1)
+    min_duration_seconds: float | None = Field(default=None, ge=0)
 
 
 class PolicyRuleRead(PolicyRuleCreate):
